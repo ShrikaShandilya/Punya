@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Green Coin Tracker",
+  "version": "1.0",
+  "description": "Earn rewards for closing tabs",
+  "permissions": ["tabs", "storage"],
+  "action": {
+    "default_popup": "chrome_extension.html"
+  }
+}

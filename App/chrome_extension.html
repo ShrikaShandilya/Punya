@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Green Coin Extension</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      width: 350px;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      padding: 20px;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .logo {
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+    
+    h1 {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+    
+    .subtitle {
+      opacity: 0.9;
+      font-size: 14px;
+    }
+    
+    .card {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 15px;
+      color: #1f2937;
+    }
+    
+    .stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .stat:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    
+    .stat-label {
+      font-size: 14px;
+      color: #6b7280;
+    }
+    
+    .stat-value {
+      font-size: 20px;
+      font-weight: bold;
+      color: #10b981;
+    }
+    
+    .button {
+      width: 100%;
+      background: white;
+      color: #10b981;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    
+    .button:hover {
+      transform: scale(1.02);
+    }
+    
+    .button:active {
+      transform: scale(0.98);
+    }
+    
+    .button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .input {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    
+    .setup-screen {
+      display: none;
+    }
+    
+    .dashboard-screen {
+      display: none;
+    }
+    
+    .message {
+      background: rgba(16, 185, 129, 0.2);
+      border: 2px solid rgba(16, 185, 129, 0.5);
+      border-radius: 8px;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 13px;
+      text-align: center;
+    }
+    
+    .error {
+      background: rgba(239, 68, 68, 0.2);
+      border: 2px solid rgba(239, 68, 68, 0.5);
+      color: #dc2626;
+    }
+  </style>
+</head>
+<body>
+  <!-- Setup Screen -->
+  <div id="setupScreen" class="setup-screen">
+    <div class="header">
+      <div class="logo">🌿</div>
+      <h1>Green Coin</h1>
+      <p class="subtitle">Track your eco-impact</p>
+    </div>
+    
+    <div class="card">
+      <input type="text" id="userIdInput" class="input" placeholder="Enter your User ID">
+      <button class="button" id="connectBtn">Connect Wallet</button>
+      <div id="setupMessage" style="display: none; margin-top: 10px; font-size: 12px; color: #6b7280;"></div>
+    </div>
+  </div>
+
+  <!-- Dashboard Screen -->
+  <div id="dashboardScreen" class="dashboard-screen">
+    <div class="header">
+      <div class="logo">🌿</div>
+      <h1>Green Coin</h1>
+      <p class="subtitle" id="username">Loading...</p>
+    </div>
+    
+    <div class="card">
+      <div class="stat">
+        <span class="stat-label">💰 Total Coins</span>
+        <span class="stat-value" id="totalCoins">0</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">🌍 CO₂ Saved</span>
+        <span class="stat-value" id="co2Saved">0 kg</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">🔥 Streak</span>
+        <span class="stat-value" id="streak">0 days</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">🗂️ Tabs Open</span>
+        <span class="stat-value" id="tabCount">0</span>
+      </div>
+    </div>
+    
+    <button class="button" id="closeTabsBtn">Close Unused Tabs</button>
+    <button class="button" id="disconnectBtn" style="margin-top: 10px; background: #f3f4f6; color: #6b7280;">Disconnect</button>
+    
+    <div id="message" class="message" style="display: none;"></div>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:8000';
+    let userId = null;
+    let tabCount = 0;
+
+    // Check if chrome.storage is available
+    const storage = {
+      get: (keys, callback) => {
+        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+          chrome.storage.local.get(keys, callback);
+        } else {
+          // Fallback to localStorage
+          const result = {};
+          keys.forEach(key => {
+            result[key] = localStorage.getItem(key);
+          });
+          callback(result);
+        }
+      },
+      set: (items, callback) => {
+        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+          chrome.storage.local.set(items, callback);
+        } else {
+          // Fallback to localStorage
+          Object.keys(items).forEach(key => {
+            localStorage.setItem(key, items[key]);
+          });
+          if (callback) callback();
+        }
+      }
+    };
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      init();
+      setupEventListeners();
+    });
+
+    function setupEventListeners() {
+      document.getElementById('connectBtn').addEventListener('click', saveUserId);
+      document.getElementById('closeTabsBtn').addEventListener('click', closeSomeTabs);
+      document.getElementById('disconnectBtn').addEventListener('click', disconnect);
+    }
+
+    function init() {
+      storage.get(['userId'], (result) => {
+        if (result.userId) {
+          userId = result.userId;
+          showDashboard();
+          loadBalance();
+          updateTabCount();
+        } else {
+          showSetup();
+        }
+      });
+    }
+
+    function showSetup() {
+      document.getElementById('setupScreen').style.display = 'block';
+      document.getElementById('dashboardScreen').style.display = 'none';
+    }
+
+    function showDashboard() {
+      document.getElementById('setupScreen').style.display = 'none';
+      document.getElementById('dashboardScreen').style.display = 'block';
+    }
+
+    function saveUserId() {
+      const input = document.getElementById('userIdInput').value.trim();
+      const btn = document.getElementById('connectBtn');
+      const msg = document.getElementById('setupMessage');
+      
+      if (!input) {
+        msg.style.display = 'block';
+        msg.textContent = '⚠️ Please enter a User ID';
+        msg.className = 'message error';
+        return;
+      }
+      
+      btn.disabled = true;
+      btn.textContent = 'Connecting...';
+      
+      // Test if user exists
+      fetch(`${API_URL}/balance/${input}`)
+        .then(res => {
+          if (!res.ok) throw new Error('User not found');
+          return res.json();
+        })
+        .then(data => {
+          userId = input;
+          storage.set({ userId: userId }, () => {
+            showDashboard();
+            loadBalance();
+            updateTabCount();
+          });
+        })
+        .catch(err => {
+          msg.style.display = 'block';
+          msg.textContent = '❌ User not found. Register on the web app first!';
+          msg.className = 'message error';
+          btn.disabled = false;
+          btn.textContent = 'Connect Wallet';
+        });
+    }
+
+    function disconnect() {
+      storage.set({ userId: null }, () => {
+        userId = null;
+        document.getElementById('userIdInput').value = '';
+        showSetup();
+      });
+    }
+
+    async function loadBalance() {
+      try {
+        const res = await fetch(`${API_URL}/balance/${userId}`);
+        if (!res.ok) throw new Error('Failed to load balance');
+        
+        const data = await res.json();
+        
+        const totalCoins = data.wallets.money.balance_coins + data.wallets.points.balance_coins;
+        document.getElementById('totalCoins').textContent = totalCoins.toFixed(2);
+        document.getElementById('co2Saved').textContent = data.stats.total_co2_saved_kg.toFixed(2) + ' kg';
+        document.getElementById('streak').textContent = data.stats.current_streak_days + ' days';
+        document.getElementById('username').textContent = data.username;
+      } catch (err) {
+        console.error('Error loading balance:', err);
+        showMessage('⚠️ Connection error. Check if backend is running.', true);
+      }
+    }
+
+    function updateTabCount() {
+      if (typeof chrome !== 'undefined' && chrome.tabs) {
+        chrome.tabs.query({}, (tabs) => {
+          tabCount = tabs.length;
+          document.getElementById('tabCount').textContent = tabCount;
+        });
+      } else {
+        // Fallback for testing in regular browser
+        document.getElementById('tabCount').textContent = 'N/A';
+      }
+    }
+
+    async function closeSomeTabs() {
+      const btn = document.getElementById('closeTabsBtn');
+      btn.disabled = true;
+      btn.textContent = 'Closing tabs...';
+      
+      if (typeof chrome !== 'undefined' && chrome.tabs) {
+        chrome.tabs.query({ active: false, currentWindow: true }, async (tabs) => {
+          if (tabs.length === 0) {
+            showMessage('⚠️ No unused tabs to close!', false);
+            btn.disabled = false;
+            btn.textContent = 'Close Unused Tabs';
+            return;
+          }
+          
+          // Close up to 10 inactive tabs
+          const tabsToClose = tabs.slice(0, Math.min(10, tabs.length));
+          const tabIds = tabsToClose.map(t => t.id);
+          
+          chrome.tabs.remove(tabIds, async () => {
+            // Log action to API
+            try {
+              const res = await fetch(`${API_URL}/action`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  user_id: userId,
+                  action_type: 'close_tabs',
+                  metadata: { tabs: tabIds.length }
+                })
+              });
+              
+              if (!res.ok) throw new Error('API error');
+              
+              const data = await res.json();
+              
+              showMessage(`✅ Closed ${tabIds.length} tabs! +${data.coins_minted.toFixed(2)} coins`, false);
+              
+              // Refresh data
+              setTimeout(() => {
+                loadBalance();
+                updateTabCount();
+                btn.disabled = false;
+                btn.textContent = 'Close Unused Tabs';
+              }, 1000);
+            } catch (err) {
+              console.error('Error logging action:', err);
+              showMessage('❌ Failed to log action. Check backend connection.', true);
+              btn.disabled = false;
+              btn.textContent = 'Close Unused Tabs';
+            }
+          });
+        });
+      } else {
+        // Testing mode - simulate
+        try {
+          const res = await fetch(`${API_URL}/action`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id: userId,
+              action_type: 'close_tabs',
+              metadata: { tabs: 5 }
+            })
+          });
+          
+          const data = await res.json();
+          showMessage(`✅ Simulated closing 5 tabs! +${data.coins_minted.toFixed(2)} coins`, false);
+          
+          setTimeout(() => {
+            loadBalance();
+            btn.disabled = false;
+            btn.textContent = 'Close Unused Tabs';
+          }, 1000);
+        } catch (err) {
+          showMessage('❌ Backend connection failed', true);
+          btn.disabled = false;
+          btn.textContent = 'Close Unused Tabs';
+        }
+      }
+    }
+
+    function showMessage(text, isError) {
+      const msg = document.getElementById('message');
+      msg.textContent = text;
+      msg.className = isError ? 'message error' : 'message';
+      msg.style.display = 'block';
+      setTimeout(() => {
+        msg.style.display = 'none';
+      }, 3000);
+    }
+
+    // Auto-refresh data every 10 seconds
+    setInterval(() => {
+      if (userId) {
+        loadBalance();
+        updateTabCount();
+      }
+    }, 10000);
+  </script>
+</body>
+</html>
