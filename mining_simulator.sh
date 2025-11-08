@@ -24,7 +24,7 @@ press_enter() {
 }
 
 explain() {
-    echo -e "\n${CYAN}💡 $1${NC}"
+    echo -e "\n${CYAN} $1${NC}"
     press_enter
 }
 
