@@ -6,6 +6,80 @@ Carbon credit trading platform with ML-powered behavioral analytics for tracking
 
 CarbonTrade provides a comprehensive REST API for managing carbon credit trading (CER tokens) and analyzing carbon emission data using machine learning. The platform combines real-time market pricing with advanced data mining capabilities to identify behavioral patterns and unusual carbon usage.
 
+## How Mining Works
+
+The mining subsystem derives insights directly from daily carbon emission records stored in the database. Its behavior is fully grounded in the source code you provided.
+
+### 1. CSV Ingestion (IngestionService)
+
+* Expects CSV columns: `userId,date,category,amount,unit,emissionFactor(optional)`.
+* If `emissionFactor` is missing, a category‑based default is used (e.g., electricity 0.417 kgCO₂e/kWh).
+* Each record is converted into a `CarbonFootprint` entity, where `kgCO2e = amount * emissionFactor`.
+* All rows are saved in bulk via `CarbonFootprintRepository`.
+
+### 2. Feature Engineering (FeatureEngineeringService)
+
+For each day in the user-selected date range, the system constructs a **feature vector**:
+
+1. **Category one-hot totals** – sum of kgCO₂e per category for that day. Categories are learned dynamically from the data.
+2. **Month-wide total** – total kgCO₂e for the entire month of that day.
+3. **Weekday** – numeric day of week (1–7).
+4. **Month** – month number (1–12).
+5. **Total daily kgCO₂e** – the sum of all categories.
+
+Vector layout:
+
+```
+[monthTotal, weekday, month, todaySum, ...categoryTotals]
+```
+
+One vector is produced *for every day*, even if emissions are zero.
+
+### 3. Clustering (MiningService)
+
+* A Tribuo **KMeansTrainer** is built using:
+
+  * L2 (Euclidean) distance
+  * random initialisation
+  * 100 iterations
+  * 10 restarts
+* All feature vectors are added to a Tribuo `MutableDataset`.
+* The trainer produces:
+
+  * **labels** → cluster assignment for each day
+  * **centroids** → representative centroid vector for each cluster
+* These outputs are returned to the API as a `ClusterResult`.
+
+### 4. Anomaly Scoring (MiningService)
+
+An anomaly score is computed as:
+
+```
+min(distance(point, centroid[i])) for all centroids
+```
+
+This is simply the shortest Euclidean distance between the day's feature vector and any cluster centroid.
+
+High-distance points are more unusual.
+
+### 5. Anomaly Filtering
+
+* Scores are sorted.
+* The **85th percentile threshold** is computed.
+* Only points with scores **>= threshold** are classified as anomalies.
+* Results are sorted descending by severity.
+* Returned as a list of `AnomalyPoint`.
+
+### 6. Insights Summary
+
+The `Insights` DTO generates an automatic summary:
+
+```
+"Analyzed X records across Y behavioral patterns and found Z unusual activity periods."
+```
+
+---
+
 ## Tech Stack
 
 **Backend**
@@ -81,6 +155,10 @@ Handle user registration, authentication, and profile management.
 ### Data Mining & Analytics
 
 ML-powered carbon footprint analysis with clustering and anomaly detection.
+
+CarbonTrade's mining subsystem processes user-submitted carbon emission records to extract behavioral patterns. Each record typically includes activity-specific emission values (for example, transportation, energy consumption, and industrial actions). The system normalizes these values, constructs feature vectors, and feeds them into Tribuo’s K-means clustering algorithm. Groupings reveal typical daily or periodic emission behaviors.
+
+Anomaly detection leverages distance-based scoring: records that deviate significantly from assigned cluster centroids are flagged as unusual usage periods, helping identify abnormal carbon spikes, potential reporting inconsistencies, or unexpected behavioral shifts.
 
 **`GET /mining/health`**
 
