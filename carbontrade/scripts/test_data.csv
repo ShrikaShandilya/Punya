@@ -1,0 +1,4 @@
+userId,date,category,amount,unit,emissionFactor
+1,2025-11-08,electricity,100,kWh,0.417
+1,2025-11-08,car,50,km,0.192
+2,2025-11-08,flight,1000,km,0.255
