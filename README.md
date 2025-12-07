@@ -4,10 +4,20 @@ This repo holds an API (backend -> Java) and an extension, along with a frontend
 
 ### Frontend Application (`test.py`)
 
-The frontend is a robust desktop dashboard built with **Python** and **PyQt6** that acts as a "Smart Meter" for your computer. It interfaces with the Spring Boot backend to track carbon footprints, monitor system resources, and manage user accounts.
+The frontend is a high-performance desktop client engineered with **Python 3** and **PyQt6**, implementing a multi-threaded architecture to ensure non-blocking UI responsiveness while performing intensive real-time telemetry.
 
-**Key Capabilities & Architecture:**
-*   **System Monitoring & Carbon Tracking:** Uses `psutil` in a background `SystemMonitor` thread to poll real-time CPU, Memory, and Disk usage. These metrics are converted into estimated CO2 emissions and "efficiency points" using custom algorithms.
-*   **Interactive Dashboard:** A responsive, dark-mode UI that visualizes system health, efficiency rewards, and browser resource usage (profiling Chrome, Firefox, etc. for memory leaks via `BrowserMonitor`).
-*   **User & Data Management:** Allows users to register, view Carbon Credit (CER) balances, and check market prices. Telemetry data is aggregated locally and can be uploaded as CSVs for detailed backend analysis using the non-blocking `ApiWorker`.
-*   **Tech Stack:** Python 3.x, PyQt6 (GUI), `psutil` (Monitoring), `requests` (REST API Client).
+**Technical Architecture & Components:**
+
+*   **Asynchronous Concurrency Model:**
+    *   **Core Event Loop:** Powered by PyQt6, managing the application lifecycle and UI rendering.
+    *   **Worker Threads (`QThread`):** Heavy I/O and CPU-bound tasks are offloaded to dedicated background threads to prevent UI freezing.
+        *   `SystemMonitor`: A daemon thread utilizing `psutil` to sample low-level OS metrics (CPU interrupts, memory page faults, disk I/O) at 1Hz, computing instantaneous Carbon Intensity algorithms.
+        *   `ApiWorker`: Handles blocking network I/O. serialization, and RESTful HTTP transactions with the Spring Boot backend (`/api/users`, `/mining/ingest`).
+        *   `BrowserMonitor`: Performs heuristic analysis of the process table to identify browser engine signatures (Chromium/Gecko variants) and profile their resource efficiency.
+
+*   **Data Pipeline & Ingestion:**
+    *   Aggregates local system telemetry into time-series datasets.
+    *   Implements buffered batch uploading of CSV payloads to the backend for ML-driven anomaly detection.
+    *   Uses Qt Signals/Slots (`pyqtSignal`) for thread-safe cross-context communication between workers and the main GUI thread.
+
+*   **Tech Stack:** Python 3.12+, PyQt6 (Widgets, Core), `psutil` (System Interface), `requests` (HTTP Client), `pandas` (Data Buffering).
