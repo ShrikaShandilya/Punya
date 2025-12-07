@@ -1,32 +1,3 @@
-// ============================================
-// CARBONTRADE PROJECT - FILE 12 of 13
-// ============================================
-// CURRENT DIRECTORY STRUCTURE:
-// carbontrade/
-// ├── pom.xml  ✓
-// └── src/
-//     └── main/
-//         ├── resources/
-//         │   └── application.properties  ✓
-//         └── java/
-//             └── com/
-//                 └── carbontrade/
-//                     ├── CarbonTradeApplication.java  ✓
-//                     ├── model/
-//                     │   ├── User.java  ✓
-//                     │   ├── Transaction.java  ✓
-//                     │   └── CarbonFootprint.java  ✓
-//                     ├── service/
-//                     │   ├── UserService.java  ✓
-//                     │   ├── TransactionService.java  ✓
-//                     │   └── MarketService.java  ✓
-//                     └── controller/
-//                         ├── UserController.java  ✓
-//                         ├── MarketController.java  ✓
-//                         └── TransactionController.java  <-- YOU ARE HERE
-//
-// ============================================
-
 package com.carbontrade.controller;
 
 import com.carbontrade.model.Transaction;
@@ -40,7 +11,7 @@ import java.util.List;
 @RequestMapping("/api/transactions")
 @CrossOrigin(origins = "*")
 public class TransactionController {
-    
+
     @Autowired
     private TransactionService transactionService;
 

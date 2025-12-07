@@ -7,12 +7,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
 @CrossOrigin(origins = "*")
 public class UserController {
-    
+
     @Autowired
     private UserService userService;
 
@@ -21,14 +22,24 @@ public class UserController {
         String name = request.get("name");
         String email = request.get("email");
         String password = request.get("password");
-        
-        User user = userService.registerUser(name, email, password);
-        
+
+        User existingUser = userService.loginUser(email, password);
+
+        User user;
+        String message;
+
+        if (existingUser != null) {
+            user = existingUser;
+            message = "User already exists. Logged in instead.";
+        } else {
+            user = userService.registerUser(name, email, password);
+            message = "User registered successfully";
+        }
+
         Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
         response.put("userId", user.getId());
-        response.put("message", "User registered successfully");
-        
+        response.put("message", message);
+
         return ResponseEntity.ok(response);
     }
 
@@ -36,9 +47,9 @@ public class UserController {
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String password = request.get("password");
-        
+
         User user = userService.loginUser(email, password);
-        
+
         Map<String, Object> response = new HashMap<>();
         if (user != null) {
             response.put("success", true);
@@ -50,7 +61,7 @@ public class UserController {
             response.put("success", false);
             response.put("message", "Invalid credentials");
         }
-        
+
         return ResponseEntity.ok(response);
     }
 
@@ -61,5 +72,11 @@ public class UserController {
             return ResponseEntity.ok(user);
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("")
+    public ResponseEntity<List<User>> getAllUsers() {
+        // --- FIX: Connected to real database service ---
+        return ResponseEntity.ok(userService.getAllUsers());
     }
 }
