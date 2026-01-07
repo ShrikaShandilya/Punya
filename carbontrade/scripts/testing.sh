@@ -5,7 +5,7 @@ echo " CarbonTrade API – Full Test Suite"
 echo "===================================="
 echo
 
-BASE="http://localhost:8080"
+BASE="http://localhost:8081"
 PASSED=0
 FAILED=0
 FAILED_TESTS=()
@@ -59,6 +59,10 @@ test_endpoint "User: Register" "200" \
 
 test_endpoint "User: Get profile" "200" \
   "$BASE/api/users/1/profile"
+
+# Verify Security: Public User List should be BLOCKED (401 Unauthorized for anonymous)
+test_endpoint "Security: List Users (Protected)" "401" \
+  "$BASE/api/users"
 
 
 ################################################

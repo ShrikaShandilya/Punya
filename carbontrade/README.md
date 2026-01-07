@@ -114,7 +114,7 @@ mvn spring-boot:run
 
 Server runs at:
 ```
-http://localhost:8080
+http://localhost:8081
 ```
 
 ### Run All Tests
@@ -171,7 +171,7 @@ Operational status check.
 Upload CSV data.
 
 ```bash
-curl -F "file=@data.csv" http://localhost:8080/mining/ingest
+curl -F "file=@data.csv" http://localhost:8081/mining/ingest
 ```
 
 Example response:

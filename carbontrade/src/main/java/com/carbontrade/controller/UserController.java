@@ -23,17 +23,22 @@ public class UserController {
         String email = request.get("email");
         String password = request.get("password");
 
-        User existingUser = userService.loginUser(email, password);
-
         User user;
         String message;
 
+        // Try to login if exists
+        User existingUser = userService.loginUser(email, password);
         if (existingUser != null) {
             user = existingUser;
             message = "User already exists. Logged in instead.";
         } else {
-            user = userService.registerUser(name, email, password);
-            message = "User registered successfully";
+            // Try to register
+            try {
+                user = userService.registerUser(name, email, password);
+                message = "User registered successfully";
+            } catch (RuntimeException e) {
+                return ResponseEntity.badRequest().body(Map.of("message", "User already exists or invalid data"));
+            }
         }
 
         Map<String, Object> response = new HashMap<>();

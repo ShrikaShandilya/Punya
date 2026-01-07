@@ -4,52 +4,64 @@ import com.carbontrade.model.User;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class UserService {
-    private Map<Long, User> users = new ConcurrentHashMap<>();
-    private AtomicLong idCounter = new AtomicLong(1);
+    private final com.carbontrade.repository.UserRepository userRepository;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
+    public UserService(com.carbontrade.repository.UserRepository userRepository,
+            org.springframework.security.crypto.password.PasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     public User registerUser(String name, String email, String password) {
         User user = new User();
         user.setName(name);
         user.setEmail(email);
-        user.setPassword(password);
+        user.setPassword(passwordEncoder.encode(password));
         user.setCerBalance(0.0);
         user.setKycStatus("PENDING");
         user.setCreatedAt(LocalDateTime.now());
-        user.setId(idCounter.getAndIncrement());
-        users.put(user.getId(), user);
-        return user;
+
+        return userRepository.save(user);
+    }
+
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 
     public User loginUser(String email, String password) {
-        return users.values().stream()
-            .filter(u -> u.getEmail().equals(email) && u.getPassword().equals(password))
-            .findFirst()
-            .orElse(null);
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            if (passwordEncoder.matches(password, user.getPassword())) {
+                return user;
+            }
+        }
+        return null;
     }
 
     public User getUserById(Long id) {
-        return users.get(id);
+        return userRepository.findById(id).orElse(null);
     }
 
     public User updateBalance(Long userId, Double amount) {
-        User user = users.get(userId);
+        User user = userRepository.findById(userId).orElse(null);
         if (user != null) {
             user.setCerBalance(user.getCerBalance() + amount);
+            userRepository.save(user);
         }
         return user;
     }
 
     public boolean hasEnoughBalance(Long userId, Double amount) {
-        User user = users.get(userId);
+        User user = userRepository.findById(userId).orElse(null);
         return user != null && user.getCerBalance() >= amount;
     }
 
     public List<User> getAllUsers() {
-        return new ArrayList<>(users.values());
+        return userRepository.findAll();
     }
 }

@@ -21,7 +21,7 @@ def metric(title, value, subtitle=""):
         st.caption(subtitle)
 
 st.sidebar.header("API Settings")
-base_url = st.sidebar.text_input("API Base URL", value="http://localhost:8080")
+base_url = st.sidebar.text_input("API Base URL", value="http://localhost:8081")
 debug = st.sidebar.checkbox("Developer Debug", value=False)
 
 # Users

@@ -17,7 +17,7 @@ from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer, QEvent
 from PyQt6.QtGui import QFont, QColor
 
 # ------------------- Configuration -------------------
-API_BASE_URL = "http://localhost:8080"
+API_BASE_URL = "http://localhost:8081"
 CURRENT_SELECTED_USER_ID = 1  
 
 # ------------------- Dark Mode Style Sheet -------------------
@@ -765,14 +765,25 @@ class CarbonTradeWidget(QMainWindow):
         return widget
 
     def start_monitoring(self):
-        if not self.system_monitor:
-            self.system_monitor = SystemMonitor(interval=1)
-            self.system_monitor.data_collected.connect(self.update_monitor_display)
-            self.system_monitor.start()
-            self.start_browser_monitoring(auto_start=True) 
-            self.start_monitor_btn.setEnabled(False)
-            self.stop_monitor_btn.setEnabled(True)
-            self.log("System monitoring started.")
+        # Privacy Concern: Ask usage permission
+        reply = QMessageBox.question(
+            self, 'Privacy Consent', 
+            "CarbonTrade needs to scan your running processes to calculate efficiency scores.\n\nDo you allow this application to read your process list?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, 
+            QMessageBox.StandardButton.No
+        )
+
+        if reply == QMessageBox.StandardButton.Yes:
+            if not self.system_monitor:
+                self.system_monitor = SystemMonitor(interval=1)
+                self.system_monitor.data_collected.connect(self.update_monitor_display)
+                self.system_monitor.start()
+                self.start_browser_monitoring(auto_start=True) 
+                self.start_monitor_btn.setEnabled(False)
+                self.stop_monitor_btn.setEnabled(True)
+                self.log("System monitoring started (User Consented).")
+        else:
+            self.log("Monitoring start cancelled by user (Privacy).")
 
     def stop_monitoring(self):
         if self.system_monitor:
@@ -855,6 +866,17 @@ class CarbonTradeWidget(QMainWindow):
         self.start_browser_monitoring(auto_start=False)
 
     def start_browser_monitoring(self, auto_start=False):
+        if not auto_start:  # Only ask when manually triggered
+            reply = QMessageBox.question(
+                self, 'Privacy Consent',
+                "The Browser Monitor checks running processes to identify open web browsers and estimate memory usage.\n\nDo you want to allow this?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No
+            )
+            if reply == QMessageBox.StandardButton.No:
+                self.log("User denied browser monitoring consent.")
+                return
+
         # Force Clean Start
         if self.browser_monitor is not None:
             self.log("Restarting Browser Monitor...")

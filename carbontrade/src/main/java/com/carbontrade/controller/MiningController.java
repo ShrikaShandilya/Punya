@@ -56,19 +56,15 @@ public class MiningController {
 
     // NEW ENDPOINT
     @GetMapping("/analyze")
-    public ResponseEntity<Insights> analyze(
+    public java.util.concurrent.CompletableFuture<ResponseEntity<Insights>> analyze(
             @RequestParam Long userId,
             @RequestParam String start,
             @RequestParam String end,
-            @RequestParam(defaultValue = "4") int k
-    ) {
-        var result = miningService.analyze(
+            @RequestParam(defaultValue = "4") int k) {
+        return miningService.analyze(
                 userId,
                 LocalDate.parse(start),
                 LocalDate.parse(end),
-                k
-        );
-
-        return ResponseEntity.ok(result);
+                k).thenApply(ResponseEntity::ok);
     }
 }
