@@ -1,15 +1,15 @@
+# Database
+*.db
+*.sqlite
+
 # Maven
 target/
-*.jar
-*.war
-*.ear
-*.class
+*.log
 
 # IDE
 .idea/
 *.iml
 .vscode/
 
-# OS
+# System
 .DS_Store
-Thumbs.db

@@ -13,28 +13,29 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity(name = "users")
+@Entity
+@jakarta.persistence.Table(name = "app_users")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     private String username;
-    
+
     private String name;
-    
+
     @Column(unique = true)
     private String email;
-    
+
     private String password;
-    
+
     private Double cerBalance = 0.0;
-    
+
     private String kycStatus = "PENDING";
-    
+
     private String role = "USER";
-    
+
     private boolean active = true;
-    
+
     private LocalDateTime createdAt = LocalDateTime.now();
 }

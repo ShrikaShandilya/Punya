@@ -5,6 +5,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 @org.springframework.scheduling.annotation.EnableAsync
+@org.springframework.boot.autoconfigure.domain.EntityScan(basePackages = "com.carbontrade.model")
+@org.springframework.data.jpa.repository.config.EnableJpaRepositories(basePackages = "com.carbontrade.repository")
 public class CarbonTradeApplication {
     public static void main(String[] args) {
         SpringApplication.run(CarbonTradeApplication.class, args);
