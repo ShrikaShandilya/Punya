@@ -6,146 +6,70 @@ The system is optimized for clarity, extensibility, and analytical rigor, while 
 
 ---
 
-## Features
+## Key Features
 
-### Carbon Credit Market
+### 🔒 Security & Privacy
+- **Secure Authentication**: BCrypt password hashing and role-based access control (RBAC).
+- **Privacy-First Design**: Explicit user consent flow for system and browser process monitoring.
+- **Protected Data**: Sensitive endpoints (like listing all users) are restricted to ADMIN content.
+
+### 💾 Persistence (New!)
+- **SQLite Database**: Zero-config, file-based persistence using `carbontrade.db`.
+- **Data Safety**: User accounts and balances survive application restarts.
+
+### 📈 Carbon Credit Market
 - Dynamic CER token pricing
 - Real-time pricing API
 
-### User Management
-- Registration
-- Login
-- Profile management
-- CER token balances
-
-### ML-Powered Analytics
+### 🧠 ML-Powered Analytics
 - CSV ingestion for carbon footprint data
 - K-Means clustering for behavioral segmentation
 - Anomaly detection based on cluster-distance scoring
 - Analytical summaries and insights
 
-### Points & Coins Reward System
-- Points automatically awarded after ingestion and analysis
-- 50 points automatically convert into 1 CarbonTrade Coin
-- Full transaction logging (earn + auto-convert)
-- User-friendly balance endpoints
-
-### Automated Test Suite
-- Full API test runner
-- Validates all endpoints
-- Provides formatted PASS/FAIL summary
-- JQ-compatible JSON output
-
 ---
 
 ## Tech Stack
 
-### Java 21  
-Modern, high-performance runtime with:
-- Improved GC performance  
-- Virtual-thread optimizations  
-- Strong security baseline  
-
-### Spring Boot 3.2  
-Provides:
-- REST API framework  
-- Auto-configuration  
-- Actuator endpoints  
-- Spring Security integration  
-- Built-in observability  
-
-### Tribuo (Oracle Labs ML Engine)  
-Used for:
-- Data ingestion and feature extraction  
-- K-Means clustering  
-- Centroid-distance anomaly detection  
-- Vectorized analysis operations  
-
-Tribuo was selected for:
-- Strong typing for datasets & models
-- Clear reproducibility
-- JVM-native performance
-
-### H2 In-Memory Database  
-Used during development/testing for:
-- User table  
-- Points wallet  
-- Points transaction logs  
-- Ingested carbon footprint records  
-
-### JPA/Hibernate  
-- ORM mapping  
-- Automatic schema creation  
-- Repository abstractions  
-
-### Spring Security  
-Configuration includes:
-- Public endpoints for:
-  - `/api/market/**`
-  - `/api/users/**`
-  - `/mining/**`
-  - `/api/points/**`
-  - `/actuator/**`
-- CSRF disabled for API clients
-- Debug enabled for developmental transparency
-
-### Maven  
-Used for:
-- Dependency management  
-- Packaging  
-- Build lifecycle  
-- Plugin integrations  
-
-### Testing Stack  
-- Bash scripting  
-- `curl` for HTTP operations  
-- `jq` for JSON parsing  
-- Exit-code based PASS/FAIL control  
+### Java 21 & Spring Boot 3.2
+- **Runtime**: Java 21 (Virtual Threads)
+- **Framework**: Spring Boot 3.2
+- **Database**: SQLite (Production/Dev)
+- **Security**: Spring Security + JJWT
+- **ML Engine**: Oracle Tribuo
 
 ---
 
 ## Quick Start
 
-### Build & Run
+### 1. Build & Run API
+The server runs on **Port 8081** to avoid conflicts.
+
 ```bash
+cd carbontrade
 mvn clean package -DskipTests
 mvn spring-boot:run
 ```
 
-Server runs at:
-```
-http://localhost:8081
-```
+Server: `http://localhost:8081`
 
-### Run All Tests
+### 2. Run GUI Client
+We provide a Python-based GUI for easy interaction (requires PyQt6).
+
 ```bash
-./scripts/testing.sh
+cd ..
+python3 test.py
 ```
+*Note: You will be asked for consent before any system monitoring starts.*
 
 ---
 
 ## API Documentation
 
-# MARKET API
+### USER API
 
-### GET /api/market/price
-Returns current CER trading price.
-
-**Response**
-```json
-{
-  "pricePerCER": 25.68,
-  "currency": "USD"
-}
-```
-
----
-
-# USER API
-
-### POST /api/users/register
+#### POST /api/users/register
 Registers a new user.
-
 ```json
 {
   "name": "alice",
@@ -154,111 +78,29 @@ Registers a new user.
 }
 ```
 
-### POST /api/users/login  
+#### POST /api/users/login
 Authenticates user credentials.
 
-### GET /api/users/{id}/profile  
-Returns full user profile including CER balance.
+#### GET /api/users/{id}/profile
+Returns full user profile including CER balance (Requires Login).
 
----
+### MINING API
 
-# MINING API
-
-### GET /mining/health  
-Operational status check.
-
-### POST /mining/ingest  
-Upload CSV data.
-
+#### POST /mining/ingest
+Upload CSV data for analysis.
 ```bash
 curl -F "file=@data.csv" http://localhost:8081/mining/ingest
 ```
-
-Example response:
-```json
-{
-  "success": true,
-  "recordsProcessed": 366,
-  "message": "Successfully processed 366 records"
-}
-```
-
-### GET /mining/analyze  
-Perform clustering + anomaly detection.
-
-Response:
-```json
-{
-  "clusters": { "k": 4, "labels": [...], "centroids": [...] },
-  "anomalies": [ {"date":"2024-08-05","score":3.70} ],
-  "summary":"Analyzed 366 records across 4 patterns and found 57 anomalies.",
-  "totalRecords":366,
-  "totalClusters":4,
-  "totalAnomalies":57
-}
-```
-
----
-
-# POINTS & COINS SYSTEM
-
-### Reward Model
-- Every API ingestion → points awarded  
-- Every analysis → points awarded  
-- Every **50 points auto-converts into 1 coin**  
-
-### GET /api/points/rules
-Returns static reward rules.
-
-### GET /api/points/balance?userId=1  
-Returns:
-
-```json
-{
-  "userId": 1,
-  "points": 12,
-  "coins": 3
-}
-```
-
-### POST /api/points/earn  
-Dev-only manual award endpoint.
-
-```json
-{
-  "userId": 1,
-  "amount": 50,
-  "reason": "ingestion_bonus"
-}
-```
-
----
-
-## Testing Script
-
-Located at:
-```
-/scripts/testing.sh
-```
-
-Executes:
-- Market tests  
-- User tests  
-- Mining tests  
-- Points tests  
-- Negative-case tests  
-- Summary with PASS/FAIL  
 
 ---
 
 ## Project Structure
 ```
 src/main/java/com/carbontrade/
-├── controller/
-├── mining/
-├── service/
-├── model/
-├── repository/
-└── config/
+├── controller/       # REST Endpoints
+├── mining/          # ML & Analysis Services
+├── service/         # Business Logic
+├── model/           # JPA Entities (User, Transaction)
+├── repository/      # Data Access Layer
+└── config/          # Security & App Config
 ```
-

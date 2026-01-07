@@ -1,23 +1,49 @@
-## Punya
+# Punya / CarbonTrade System
 
-This repo holds an API (backend -> Java) and an extension, along with a frontend application (Python).
+This repository contains the **CarbonTrade** platform, a sustainable trading and analytics ecosystem.
 
-### Frontend Application (`test.py`)
+## Components
 
-The frontend is a high-performance desktop client engineered with **Python 3** and **PyQt6**, implementing a multi-threaded architecture to ensure non-blocking UI responsiveness while performing intensive real-time telemetry.
+### 1. CarbonTrade API (`/carbontrade`)
+The core backend service powered by **Java 21**, **Spring Boot 3**, and **SQLite**.
+- **Features**: User authentication, Carbon Credit (CER) trading, ML-based anomaly detection (Tribuo).
+- **Port**: `8081`
+- **Persistence**: `carbontrade.db` (SQLite)
 
-**Technical Architecture & Components:**
+### 2. CarbonTrade GUI (`test.py`)
+A modern **PyQt6** desktop client for interacting with the API.
+- **Features**: Real-time System Monitoring, Browser Efficiency Tracking, and Market Dashboard.
+- **Privacy**: Includes explicit user consent dialogs for all monitoring features.
 
-*   **Asynchronous Concurrency Model:**
-    *   **Core Event Loop:** Powered by PyQt6, managing the application lifecycle and UI rendering.
-    *   **Worker Threads (`QThread`):** Heavy I/O and CPU-bound tasks are offloaded to dedicated background threads to prevent UI freezing.
-        *   `SystemMonitor`: A daemon thread utilizing `psutil` to sample low-level OS metrics (CPU interrupts, memory page faults, disk I/O) at 1Hz, computing instantaneous Carbon Intensity algorithms.
-        *   `ApiWorker`: Handles blocking network I/O. serialization, and RESTful HTTP transactions with the Spring Boot backend (`/api/users`, `/mining/ingest`).
-        *   `BrowserMonitor`: Performs heuristic analysis of the process table to identify browser engine signatures (Chromium/Gecko variants) and profile their resource efficiency.
+---
 
-*   **Data Pipeline & Ingestion:**
-    *   Aggregates local system telemetry into time-series datasets.
-    *   Implements buffered batch uploading of CSV payloads to the backend for ML-driven anomaly detection.
-    *   Uses Qt Signals/Slots (`pyqtSignal`) for thread-safe cross-context communication between workers and the main GUI thread.
+## Getting Started
 
-*   **Tech Stack:** Python 3.12+, PyQt6 (Widgets, Core), `psutil` (System Interface), `requests` (HTTP Client), `pandas` (Data Buffering).
+### Prerequisites
+- Java 21+
+- Maven
+- Python 3.10+
+- PyQt6 (`pip install PyQt6 requests psutil`)
+
+### Running the System
+
+**1. Start the Backend:**
+```bash
+cd carbontrade
+mvn spring-boot:run
+```
+
+**2. Start the Client:**
+Open a new terminal:
+```bash
+# Install dependencies if needed
+pip install PyQt6 requests psutil pyqtgraph
+
+# Run the GUI
+python3 test.py
+```
+
+## Security & Privacy
+- **Passwords**: Hashed using BCrypt.
+- **Data**: Stored locally in `carbontrade.db`.
+- **Monitoring**: Process and Browser scanning require explicit one-time consent per session.
