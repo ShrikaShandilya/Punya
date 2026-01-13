@@ -1,0 +1,15 @@
+# Database
+*.db
+*.sqlite
+
+# Maven
+target/
+*.log
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# System
+.DS_Store
