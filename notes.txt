@@ -1,0 +1,90 @@
+Suggested improvements for Carbontrade API (with their concerns) 
+
+1. NO LOGIN PROTECTION
+
+Concern
+The system is currently set up to let anyone in without checking who they are. The "security guard" is essentially asleep.
+
+Consequence
+A stranger could access private user profiles or data without needing a password.
+
+Mitigation
+Turn on "Authentication" rules so that only people who are logged in can see private pages.
+
+--------------------------------------------------
+
+2. UNPROTECTED PASSWORDS
+
+Concern
+Passwords are saved in the database exactly as the user types them, like writing them in a notebook.
+
+Consequence
+If a hacker gets into the database, they can read everyone's password instantly.
+
+Mitigation
+Use "Hashing" to scramble passwords into unreadable code before saving them.
+
+--------------------------------------------------
+
+3. PUBLIC USER LIST
+
+Concern
+There is a web link that displays a list of every single user, their email, and their points balance.
+
+Consequence
+Scammers could easily get this list and send fake emails (phishing) to your users.
+
+Mitigation
+Delete this link or make sure only the Head Administrator can access it.
+
+--------------------------------------------------
+
+4. LOADING LARGE FILES
+
+Concern
+When a user uploads a file, the server tries to open the whole thing at once in its memory (RAM).
+
+Consequence
+If the file is too big, the server will run out of memory and crash, shutting down the website for everyone.
+
+Mitigation
+Switch to "Stream Processing," which reads the file one line at a time instead of all at once.
+
+--------------------------------------------------
+
+5. HEAVY MATH FREEZING THE APP
+
+Concern
+Complicated math (AI analysis) runs right when the user clicks the button, forcing them to wait.
+
+Consequence
+The website will look like it has frozen or broken while it does the math, and might time out.
+
+Mitigation
+Move the heavy math to a "Background Job" so the user sees a "Processing..." message instead of a frozen screen.
+
+--------------------------------------------------
+
+6. DATA DISAPPEARING ON RESTART
+
+Concern
+User accounts are currently being saved in temporary memory (RAM) instead of the permanent database.
+
+Consequence
+Every time you restart or update the server, all user accounts across the entire system will be deleted.
+
+Mitigation
+Connect the code to the "Database" properly so data is saved to the hard drive.
+
+--------------------------------------------------
+
+7. READING USER PROGRAMS
+
+Concern
+The app automatically looks at what other programs (processes) are running on the user's computer.
+
+Consequence
+This looks like spyware behavior. Users might get scared that you are tracking what they do on their computer.
+
+Mitigation
+Ask the user for permission first ("Opt-In") and explain clearly why you need to check their open programs.
