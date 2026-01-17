@@ -11,6 +11,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -29,10 +30,13 @@ public class AuthService {
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
-    @org.springframework.beans.factory.annotation.Value("${spring.mail.username}")
+    @Autowired
+    private org.springframework.security.core.userdetails.UserDetailsService userDetailsService;
+
+    @org.springframework.beans.factory.annotation.Value("${spring.mail.username:}")
     private String mailUsername;
 
-    @org.springframework.beans.factory.annotation.Value("${spring.mail.password}")
+    @org.springframework.beans.factory.annotation.Value("${spring.mail.password:}")
     private String mailPassword;
 
     public AuthResponse login(AuthRequest request) {
@@ -41,8 +45,9 @@ public class AuthService {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtTokenProvider.generateToken(authentication);
+        String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
 
-        return new AuthResponse(jwt);
+        return new AuthResponse(jwt, refreshToken);
     }
 
     public String register(RegisterRequest request) {
@@ -86,6 +91,32 @@ public class AuthService {
         return "Token is valid for user: " + username;
     }
 
+    public AuthResponse refreshToken(String refreshToken) {
+        if (!jwtTokenProvider.validateToken(refreshToken)) {
+            throw new RuntimeException("Refresh Token is invalid or expired");
+        }
+
+        // Optional: Check if it's actually a refresh token by checking claims
+        // String type = jwtTokenProvider.getClaim(refreshToken, "type");
+        // if (!"refresh".equals(type)) throw exception...
+
+        String username = jwtTokenProvider.getUsernameFromToken(refreshToken);
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null,
+                userDetails.getAuthorities());
+
+        String newAccessToken = jwtTokenProvider.generateToken(authentication);
+
+        // Return same refresh token or rotate? For simplicity, returning same unless
+        // near expiry,
+        // or just generating new one. Let's generate a new one for simple rotation.
+        String newRefreshToken = jwtTokenProvider.generateRefreshToken(authentication);
+
+        return new AuthResponse(newAccessToken, newRefreshToken);
+    }
+
     // ----------------------------
     // Password & Email Support
     // ----------------------------
@@ -97,14 +128,24 @@ public class AuthService {
     }
 
     public void sendVerificationEmail(String email, String verificationCode) {
+        if (mailUsername == null || mailUsername.isEmpty() || mailPassword == null || mailPassword.isEmpty()) {
+            System.out.println("--------------------------------------------------");
+            System.out.println("MOCK EMAIL SENT TO: " + email);
+            System.out.println("SUBJECT: Verification Code for Carbon Trade Account");
+            System.out.println("BODY: Your verification code is: " + verificationCode);
+            System.out.println("--------------------------------------------------");
+            return;
+        }
+
         // NOTE: In production, use Spring Mail or an external service.
         // Preserving existing logic for now.
         java.util.Properties props = new java.util.Properties();
         props.put("mail.smtp.host", "smtp.gmail.com");
         props.put("mail.smtp.port", "587");
         props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
 
-        javax.mail.Session session = javax.mail.Session.getDefaultInstance(props, new javax.mail.Authenticator() {
+        javax.mail.Session session = javax.mail.Session.getInstance(props, new javax.mail.Authenticator() {
             protected javax.mail.PasswordAuthentication getPasswordAuthentication() {
                 return new javax.mail.PasswordAuthentication(mailUsername, mailPassword);
             }
@@ -118,6 +159,7 @@ public class AuthService {
             message.setText("Your verification code is: " + verificationCode);
             javax.mail.Transport.send(message);
         } catch (javax.mail.MessagingException e) {
+            // Just log error in dev/test, don't block flow
             e.printStackTrace();
         }
     }

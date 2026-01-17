@@ -36,4 +36,10 @@ public class AuthController {
     public ResponseEntity<String> forgotPassword(@RequestBody String email) {
         return ResponseEntity.ok(authService.forgotPassword(email));
     }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refreshToken(
+            @RequestBody com.carbontrade.controller.dto.RefreshTokenRequest request) {
+        return ResponseEntity.ok(authService.refreshToken(request.getRefreshToken()));
+    }
 }

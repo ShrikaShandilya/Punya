@@ -18,17 +18,25 @@ import java.util.stream.Collectors;
 @Component
 public class JwtTokenProvider {
 
-    @org.springframework.beans.factory.annotation.Value("${app.jwt.secret}")
+    @org.springframework.beans.factory.annotation.Value("${app.jwt.secret:default-dev-secret}")
     private String jwtSecret;
 
     @org.springframework.beans.factory.annotation.Value("${app.jwt.expiration-ms}")
     private long jwtExpirationMs;
 
+    @org.springframework.beans.factory.annotation.Value("${app.jwt.refresh-expiration-ms:86400000}")
+    private long jwtRefreshExpirationMs;
+
     private SecretKey secretKey;
 
     @javax.annotation.PostConstruct
     public void init() {
-        this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        if ("default-dev-secret".equals(jwtSecret)) {
+            System.out.println("No JWT_SECRET provided. Generating a random secure key for this session.");
+            this.secretKey = Jwts.SIG.HS512.key().build();
+        } else {
+            this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
     }
 
     public String generateToken(Authentication authentication) {
@@ -47,6 +55,21 @@ public class JwtTokenProvider {
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(secretKey) // algorithm inferred
+                .compact();
+    }
+
+    public String generateRefreshToken(Authentication authentication) {
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + jwtRefreshExpirationMs);
+
+        return Jwts.builder()
+                .subject(userDetails.getUsername())
+                .claim("type", "refresh")
+                .issuedAt(now)
+                .expiration(expiry)
+                .signWith(secretKey)
                 .compact();
     }
 

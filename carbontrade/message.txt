@@ -1,0 +1,636 @@
+# CarbonTrade Backend Development Plan
+
+## Executive Summary
+
+This document outlines the strategic development roadmap for the CarbonTrade backend platform over the next 16 weeks. Based on our current foundation, we will transform the existing prototype into a production-ready CER (Certified Emission Reduction) trading platform capable of handling real carbon credit transactions at retail scale.
+
+## Current Context & Assessment
+
+### **What We Have Today (API Documentation Analysis)**
+
+Based on our API documentation, the current system provides:
+
+✅ **Core Infrastructure**
+- Spring Boot 3.2 with Java 21
+- SQLite database with JPA models
+- Basic user authentication (register/login)
+- Simple market operations (buy/sell at fixed price)
+- Points/gamification system
+- Carbon footprint calculator
+- Transaction history tracking
+- ML-based data analysis capabilities
+
+✅ **Functional APIs**
+- `/api/users` - User management
+- `/api/market` - Basic CER trading
+- `/api/carbon` - Footprint calculations
+- `/api/points` - Reward system
+- `/api/transactions` - Transaction history
+- `/mining` - Data analysis
+
+### **Critical Gaps Identified**
+
+🚨 **Security & Compliance**
+- Current authentication uses userId directly in requests (no JWT tokens)
+- No KYC document upload/verification system
+- Missing audit trails for regulatory compliance
+
+🚨 **Trading Limitations**
+- Market only supports instant execution at fixed price
+- No order book or bid/ask matching system
+- No real price discovery mechanism
+
+🚨 **Blockchain Integration**
+- CER tokens are database records only
+- No Web3 connectivity for real carbon credit trading
+- Missing smart contract integration
+
+🚨 **Production Readiness**
+- No real-time market data handling
+- Limited scalability with SQLite
+- Missing comprehensive monitoring/logging
+
+## Strategic Development Roadmap
+
+### **Phase 1: Security & Authentication Foundation (Weeks 1-2)**
+
+**Objective**: Implement enterprise-grade security to prepare for production trading
+
+**Why This Matters**: 
+- Current system exposes userIds in requests, creating security vulnerability
+- Proper JWT authentication is required for regulatory compliance
+- Foundation for secure API access across all trading functions
+
+**Key Deliverables**:
+```
+NEW APIs:
+POST /api/v1/auth/register - Enhanced registration with email verification
+POST /api/v1/auth/login - JWT-based authentication
+POST /api/v1/auth/refresh - Token refresh mechanism
+GET  /api/v1/auth/verify - Token validation
+POST /api/v1/users/kyc/upload - KYC document submission
+GET  /api/v1/users/kyc/status - KYC verification status
+
+TECHNICAL CHANGES:
+- JWT token generation and validation
+- Enhanced password encryption
+- Session management
+- File upload infrastructure for KYC documents
+```
+
+### **Phase 2: Advanced Trading Engine (Weeks 3-6)**
+
+**Objective**: Transform fixed-price market into real trading platform with order book
+
+**Why This Matters**:
+- Current buy/sell at fixed price doesn't reflect real market dynamics
+- Order book enables price discovery and fair market pricing
+- Essential for professional carbon credit trading
+
+**Week 3: Basic Order Book Foundation**
+```
+NEW APIs:
+GET  /api/v1/market/orderbook - Full order book (bids/asks)
+POST /api/v1/market/orders/limit - Place limit orders
+POST /api/v1/market/orders/market - Place market orders
+
+TECHNICAL CHANGES:
+- Order book data models
+- Basic matching logic (FIFO)
+- Order state management
+```
+
+**Week 4: Advanced Order Management**
+```
+NEW APIs:
+GET  /api/v1/market/orders/{id} - Order status
+DELETE /api/v1/market/orders/{id} - Cancel orders
+GET  /api/v1/market/trades - Recent trade history
+
+TECHNICAL CHANGES:
+- Order cancellation/modification
+- Basic Redis caching
+- Trade execution logging
+```
+
+**Week 5: Real-time Features**
+```
+NEW APIs:
+GET  /api/v1/market/depth - Market depth analysis
+GET  /api/v1/market/ticker - Real-time price ticker
+
+TECHNICAL CHANGES:
+- WebSocket implementation
+- Live price updates
+- Market depth calculations
+```
+
+**Week 6: Trading Engine Polish**
+```
+TECHNICAL CHANGES:
+- Performance optimization
+- Edge case handling
+- Order validation improvements
+- Comprehensive testing
+```
+
+### **Phase 3: Blockchain & CER Integration (Weeks 7-12)**
+
+**Objective**: Connect database CER records to real blockchain tokens and verified carbon registries
+
+**Why This Matters**:
+- Database-only tokens lack credibility and transparency
+- Blockchain integration enables real CER trading on carbon markets
+- Smart contracts ensure automated, trustless transactions
+- CER registry integration connects to authentic carbon credits
+
+**Week 7: Blockchain Foundation**
+```
+NEW APIs:
+POST /api/v1/blockchain/wallet/create - Create blockchain wallet
+GET  /api/v1/blockchain/wallet/balance - Get on-chain balance
+
+TECHNICAL CHANGES:
+- Web3j setup and testnet connection
+- Basic wallet management
+- Network connectivity testing
+```
+
+**Week 8: Smart Contract Development**
+```
+NEW APIs:
+POST /api/v1/blockchain/tokens/mint - Mint new CER tokens
+POST /api/v1/blockchain/tokens/burn - Retire/offset CER tokens
+
+TECHNICAL CHANGES:
+- CER token contract design (ERC-20 compliant)
+- Deployment on testnet
+- Basic mint/burn functions
+```
+
+**Week 9: Token Integration**
+```
+NEW APIs:
+GET  /api/v1/blockchain/transactions - On-chain transaction history
+POST /api/v1/blockchain/transfer - Transfer tokens between wallets
+
+TECHNICAL CHANGES:
+- Database-to-blockchain sync
+- Transfer between wallets
+- Transaction monitoring
+```
+
+**Week 10: CER Registry Integration**
+```
+NEW APIs:
+GET  /api/v1/cer/registry/projects - List verified CER projects
+GET  /api/v1/cer/registry/projects/{id} - Project verification details
+POST /api/v1/cer/registry/verify - Verify CER authenticity
+
+TECHNICAL CHANGES:
+- Connect to UNFCCC/CDM registries
+- Project verification workflows
+- Authentic CER sourcing
+- Vintage and serial number tracking
+```
+
+**Week 11: Advanced CER Features**
+```
+NEW APIs:
+POST /api/v1/cer/tokens/fractionalize - Break CER into tradable units
+GET  /api/v1/cer/tokens/retire - Retire CER for offsetting
+POST /api/v1/cer/projects/import - Import verified CER projects
+
+TECHNICAL CHANGES:
+- Fractional token implementation
+- Batch transactions
+- Gas optimization
+- Retirement certificate generation
+```
+
+**Week 12: Blockchain Testing & Security**
+```
+TECHNICAL CHANGES:
+- Smart contract audits
+- Integration testing
+- Security hardening
+- Performance optimization
+- Disaster recovery testing
+```
+
+### **Phase 4: Compliance & Analytics (Weeks 13-14)**
+
+**Objective**: Build regulatory compliance and advanced analytics capabilities
+
+**Why This Matters**:
+- Carbon credit trading requires strict regulatory compliance
+- Advanced analytics provide insights for traders and regulators
+- Audit trails essential for financial and environmental reporting
+
+**Week 13: Analytics Engine**
+```
+NEW APIs:
+GET  /api/v1/analytics/portfolio/{userId} - Portfolio analysis
+GET  /api/v1/analytics/market-stats - Market statistics
+GET  /api/v1/analytics/volume-history - Trading volume history
+
+TECHNICAL CHANGES:
+- Advanced analytics engine
+- Data visualization API endpoints
+- Market trend analysis
+- Portfolio performance metrics
+```
+
+**Week 14: Compliance System**
+```
+NEW APIs:
+GET  /api/v1/compliance/audit-log - System audit trail
+POST /api/v1/compliance/reports/generate - Generate compliance reports
+GET  /api/v1/compliance/kyc/status - KYC verification status
+POST /api/v1/compliance/cer/traceability - CER provenance tracking
+
+TECHNICAL CHANGES:
+- Comprehensive audit logging system
+- Compliance reporting automation
+- CER traceability and provenance
+- Regulatory reporting templates
+```
+
+### **Phase 5: Production Optimization (Weeks 15-16)**
+
+**Objective**: Optimize for resource constraints and reliability
+
+**Why This Matters**:
+- Maximize performance within hardware limitations
+- Ensure system stability on resource-constrained environment
+- Implement efficient monitoring and alerting
+
+**Key Deliverables**:
+```
+NEW APIs:
+GET  /api/v1/health/detailed - Lightweight system health
+GET  /api/v1/metrics/resource - Resource usage metrics
+POST /api/v1/admin/maintenance/mode - Maintenance mode control
+GET  /api/v1/admin/users/activity - User activity monitoring
+
+TECHNICAL CHANGES:
+- SQLite optimization for HDD performance
+- Redis memory optimization (512MB max)
+- Lightweight monitoring with minimal overhead
+- Resource usage optimization
+- Security audit and penetration testing
+- Performance tuning for Core 2 Duo constraints
+```
+
+## Technical Stack Evolution
+
+### **Current Stack**
+```
+- Spring Boot 3.2 + Java 21
+- SQLite Database
+- Basic Spring Security
+- JWT libraries (included but not implemented)
+- Tribuo for ML analysis
+```
+
+### **Target Stack (Hardware-Optimized)**
+```
+- Spring Boot 3.2 + Java 21
+- SQLite (optimized for HDD performance)
+- Redis (lightweight in-memory caching)
+- Full JWT Authentication
+- Web3j (blockchain integration)
+- Minimal monitoring overhead
+- Resource-optimized configurations
+```
+
+## Hardware Constraints & Optimization Strategy
+
+### **Server Specifications**
+- **CPU**: Intel Core 2 Duo (2 cores)
+- **RAM**: 4GB DDR2/DDR3
+- **Storage**: Traditional HDD (5400-7200 RPM)
+- **OS**: Linux (recommended for efficiency)
+
+### **Performance Implications**
+- Limited concurrent user capacity (~50-100 active users)
+- Slower database I/O due to HDD
+- Memory constraints require efficient caching
+- CPU-intensive operations need optimization
+
+### **Optimization Strategies**
+
+#### **Database Optimization**
+```
+STRATEGY:
+- Continue with SQLite (better for resource-constrained environments)
+- Implement connection pooling (max 5-10 connections)
+- Add database indexes for frequently queried fields
+- Regular VACUUM operations to maintain SQLite performance
+- Batch operations to reduce I/O overhead
+
+CONFIGURATION:
+- spring.jpa.properties.hibernate.jdbc.batch_size=20
+- spring.jpa.properties.hibernate.order_inserts=true
+- spring.jpa.properties.hibernate.order_updates=true
+- spring.datasource.hikari.maximum-pool-size=5
+```
+
+#### **Memory Management**
+```
+STRATEGY:
+- JVM heap size limited to 2GB (-Xmx2g)
+- Redis for hot data (max 512MB allocation)
+- Implement LRU cache eviction policies
+- Use Spring Boot's embedded Tomcat with minimal threads
+
+CONFIGURATION:
+- server.tomcat.threads.max=50
+- server.tomcat.max-connections=100
+- spring.jmx.enabled=false (reduce overhead)
+- management.endpoints.enabled-by-default=false
+```
+
+#### **Application-Level Optimizations**
+```
+STRATEGY:
+- Disable heavy ML features during peak hours
+- Implement request rate limiting
+- Use asynchronous processing for non-critical operations
+- Compress API responses
+- Optimize JSON serialization/deserialization
+```
+
+## Risk Mitigation Strategy
+
+### **Technical Risks**
+1. **Hardware Performance Limitations**
+   - Mitigation: Resource-optimized code, efficient caching, connection pooling
+   - Backup: Feature toggle for heavy operations during peak load
+
+2. **Blockchain Integration Complexity**
+   - Mitigation: Start with testnet deployment, gradual integration
+   - Backup: Maintain database records during transition
+
+3. **I/O Bottlenecks on HDD**
+   - Mitigation: Database optimization, batch operations, connection pooling
+   - Backup: Implement data archiving strategies
+
+4. **Memory Constraints**
+   - Mitigation: Careful memory management, Redis optimization, JVM tuning
+   - Backup: Feature degradation during memory pressure
+
+5. **Regulatory Compliance**
+   - Mitigation: Early engagement with compliance experts
+   - Backup: Modular compliance system for easy updates
+
+### **Business Risks**
+1. **Market Adoption**
+   - Mitigation: Phased rollout with beta testing
+   - Feedback: Continuous user feedback integration
+
+2. **Compliance Changes**
+   - Mitigation: Flexible architecture for regulatory updates
+   - Monitoring: Regular compliance review cycles
+
+## Success Metrics
+
+### **Technical Metrics (Hardware-Adjusted)**
+- API response time < 500ms (95th percentile)
+- 99% uptime during trading hours (allows for maintenance)
+- Zero security vulnerabilities in penetration testing
+- Successfully handle 50-100 concurrent users
+- Memory usage < 3GB during peak load
+- CPU utilization < 80% during normal operations
+
+### **Business Metrics**
+- Successful KYC verification rate > 90%
+- Transaction processing accuracy 100%
+- User engagement with trading features
+- Platform reliability during peak trading periods
+
+## Infrastructure Requirements
+
+### **Development Environment**
+- Development environment (existing)
+- Testnet blockchain access
+- Core 2 Duo laptop with 4GB RAM (production server)
+- External backup solution for database
+- Basic monitoring tools (lightweight)
+- Security audit services
+
+## Hardware-Aware Development Considerations
+
+### **Expected Performance Characteristics**
+- **Concurrent Users**: 50-100 active users maximum
+- **Transaction Throughput**: ~10 transactions/second peak
+- **API Response Times**: 200-500ms typical, up to 1s during heavy load
+- **Memory Footprint**: 2-3GB typical usage, 3.5GB maximum
+- **Disk I/O**: Optimized for HDD performance constraints
+
+### **Feature Prioritization Based on Constraints**
+1. **Core Trading Features** (High Priority)
+   - User authentication and basic trading
+   - Order book functionality
+   - Transaction processing
+
+2. **Enhanced Features** (Medium Priority)
+   - Real-time price updates (limited frequency)
+   - Basic analytics and reporting
+   - KYC document processing
+
+3. **Advanced Features** (Low Priority - may be disabled during peak)
+   - Heavy ML analysis
+   - Complex analytics
+   - Historical data mining
+
+### **Scaling Strategy**
+- **Phase 1**: Launch with core features for limited user base
+- **Phase 2**: Optimize based on real usage patterns
+- **Phase 3**: Consider hardware upgrades if user demand grows
+- **Future**: Migration to cloud infrastructure when financially viable
+
+## Conclusion
+
+This development plan transforms our current CarbonTrade prototype into a production-ready CER trading platform optimized for resource-constrained environments. By acknowledging and planning around our hardware limitations (Core 2 Duo, 4GB RAM, HDD), we create a realistic and achievable roadmap.
+
+The timeline allows for iterative development, testing, and optimization within our technical constraints, ensuring we deliver a functional, secure, and compliant platform that can handle initial market demand and grow with the business.
+
+## CER-Specific Implementation Requirements
+
+### **Understanding CER Trading vs Traditional Commodities**
+
+Unlike traditional commodities, CERs have unique characteristics that require special handling:
+
+#### **1. CER Verification & Authenticity**
+```
+CURRENT APPROACH: Database records only
+REQUIRED CHANGE: Integration with verified carbon registries
+
+CHALLENGE: Each CER has:
+- Unique serial number (UNFCCC registry ID)
+- Vintage year (when emission reduction occurred)
+- Project type (renewable energy, methane capture, etc.)
+- Verification status (validated, certified, issued)
+- Geographic location and methodology
+
+IMPLEMENTATION: Week 10 - CER Registry Integration
+- Connect to UNFCCC CDM Registry API
+- Validate each CER's authenticity before tokenization
+- Track CER provenance from project to retirement
+```
+
+#### **2. CER Fractionalization for Retail Trading**
+```
+CURRENT APPROACH: Whole CER units (1 tonne CO2)
+REQUIRED CHANGE: Fractional trading (down to 1kg CO2)
+
+CHALLENGE: Real CERs cannot be split physically
+SOLUTION: Represent as digital claims on verified CER pools
+
+IMPLEMENTATION: Week 11 - Advanced CER Features
+- Create smart contracts that represent fractional claims
+- Back each fractional token with verified CER reserves
+- Enable retirement of fractional amounts
+- Generate retirement certificates for environmental claims
+```
+
+#### **3. CER Retirement & Environmental Integrity**
+```
+CURRENT APPROACH: Simple token burning
+REQUIRED CHANGE: Formal retirement process with certificates
+
+CHALLENGE: Once a CER is retired:
+- It cannot be traded again (double counting prevention)
+- Requires official retirement serial number
+- Must be reported to registry
+- Generates retirement certificate for offset claim
+
+IMPLEMENTATION: Week 11 - Advanced CER Features
+- Official registry retirement process
+- Unique retirement serial numbers
+- Digital retirement certificates
+- Permanent retirement tracking
+```
+
+#### **4. Regulatory Compliance & Reporting**
+```
+CURRENT APPROACH: Basic transaction tracking
+REQUIRED CHANGE: Full regulatory compliance
+
+CHALLENGE: Carbon markets require:
+- Anti-money laundering (AML) checks
+- Know your customer (KYC) verification
+- Transaction reporting to regulators
+- Market manipulation prevention
+- Carbon accounting standards compliance
+
+IMPLEMENTATION: Week 14 - Compliance System
+- Enhanced KYC with document verification
+- AML transaction monitoring
+- Regulatory report generation
+- Compliance audit trails
+```
+
+#### **5. Market Data Integration**
+```
+CURRENT APPROACH: Internal price discovery
+REQUIRED CHANGE: Integration with broader carbon markets
+
+CHALLENGE: CER prices influenced by:
+- International carbon market prices
+- Regulatory policy changes
+- Supply/demand from certified projects
+- Voluntary market demand
+
+IMPLEMENTATION: Week 13 - Analytics Engine
+- Real-time market price feeds
+- Market sentiment analysis
+- Price trend forecasting
+- Cross-market arbitrage detection
+```
+
+### **Critical CER Architecture Changes**
+
+#### **Smart Contract Modifications**
+```solidity
+// Enhanced CER Token Contract Requirements
+contract CERToken is ERC20 {
+    struct CERInfo {
+        string registryId;        // UNFCCC serial number
+        uint256 vintageYear;      // Emission reduction year
+        string projectType;       // Renewable, methane, etc.
+        string methodology;      // Approved methodology
+        bool isRetired;          // Retirement status
+        uint256 retirementId;    // Official retirement number
+    }
+    
+    mapping(uint256 => CERInfo) public cerRegistry;
+    mapping(address => uint256) public fractionalClaims;
+    
+    function mintWithVerification(uint256 amount, CERInfo memory cerInfo) external;
+    function retireFractional(uint256 amount, string memory beneficiary) external;
+    function verifyAuthenticity(uint256 tokenId) external view returns (bool);
+}
+```
+
+#### **Database Schema Extensions**
+```sql
+-- New tables for CER tracking
+CREATE TABLE cer_registry (
+    id INTEGER PRIMARY KEY,
+    registry_id VARCHAR(50) UNIQUE NOT NULL,
+    vintage_year INTEGER,
+    project_type VARCHAR(100),
+    methodology VARCHAR(100),
+    verification_status VARCHAR(20),
+    issuer VARCHAR(100),
+    created_at TIMESTAMP
+);
+
+CREATE TABLE cer_fractional_pool (
+    id INTEGER PRIMARY KEY,
+    cer_registry_id INTEGER REFERENCES cer_registry(id),
+    total_supply DECIMAL(20,8),
+    available_supply DECIMAL(20,8),
+    retired_amount DECIMAL(20,8),
+    last_updated TIMESTAMP
+);
+
+CREATE TABLE cer_retirements (
+    id INTEGER PRIMARY KEY,
+    retirement_serial VARCHAR(50) UNIQUE,
+    amount DECIMAL(20,8),
+    beneficiary VARCHAR(200),
+    purpose TEXT,
+    retirement_date TIMESTAMP,
+    certificate_url VARCHAR(500)
+);
+```
+
+### **Integration Points with Carbon Registries**
+
+#### **UNFCCC CDM Registry Integration**
+```
+API ENDPOINTS TO IMPLEMENT:
+- GET /cer/registry/search - Search for verified CERs
+- GET /cer/registry/validate/{serialNumber} - Validate CER authenticity
+- POST /cer/registry/retire/{serialNumber} - Official retirement
+- GET /cer/registry/certificate/{retirementId} - Download retirement certificate
+
+DATA TO TRACK:
+- CER Serial Numbers (UNFCCC format)
+- Project Details (type, location, methodology)
+- Issuance and Retirement History
+- Current Ownership Status
+```
+
+### **Updated Success Metrics for CER Trading**
+
+#### **CER-Specific KPIs**
+- 100% CER verification rate (all tokens backed by real CERs)
+- <24-hour retirement processing time
+- Zero double-counting incidents
+- Complete audit trail for all CER movements
+- Integration with at least 2 major carbon registries
+- Successful retirement certificate generation
