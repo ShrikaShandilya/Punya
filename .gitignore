@@ -1,0 +1,32 @@
+.aider*
+
+# Maven
+target/
+*.jar
+*.war
+*.ear
+*.class
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Application specific
+kyc-uploads/
+*.db
+*.log
+carbontrade/target/
+carbontrade/kyc-uploads/
+
+# Secrets
+.env
+.env.local
+
+# Node / Frontend
+node_modules/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
