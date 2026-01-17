@@ -24,9 +24,9 @@ Manages public authentication and account recovery.
 
 | Method | Endpoint | Description | Request Body | Response |
 | :--- | :--- | :--- | :--- | :--- |
-| `POST` | `/register` | Registers a new user. | `{"username": "...", "email": "...", "password": "..."}` | Success message string. |
-| `POST` | `/login` | Authenticates a user and returns a JWT. | `{"username": "...", "password": "..."}` | `{"accessToken": "...", "tokenType": "Bearer"}` |
-| `POST` | `/refresh` | Refreshes an expired JWT. | `refreshToken` string | New access token string. |
+| `POST` | `/register` | Registers a new user. | `{"username": "...", "email": "...", "password": "..."}` | String message. |
+| `POST` | `/login` | Authenticates a user and returns a JWT. | `{"username": "...", "password": "..."}` | `{"accessToken": "...", "refreshToken": "..."}` |
+| `POST` | `/refresh` | Refreshes an expired JWT. | `{"refreshToken": "..."}` | `{"accessToken": "...", "refreshToken": "..."}` |
 | `GET` | `/verify` | Verifies if a token is valid. | `token` (Query Param) | Validation message string. |
 | `POST` | `/forgot-password` | Initiates password reset flow. | `email` string | Success message. |
 
