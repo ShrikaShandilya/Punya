@@ -108,3 +108,7 @@ src/main/java/com/carbontrade/
 ├── repository/      # Data Access Layer
 └── config/          # Security & App Config
 ```
+
+## Contributors
+
+- **Eshita Srivastava (eshi999)**: API Development & Design
