@@ -109,6 +109,6 @@ src/main/java/com/carbontrade/
 └── config/          # Security & App Config
 ```
 
-## Contributors
+## Author
 
 - **Eshita Srivastava (eshi999)**: API Development & Design
