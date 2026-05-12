@@ -111,4 +111,4 @@ src/main/java/com/carbontrade/
 
 ## Author
 
-- **Eshita Srivastava (eshi999)**: API Development & Design
+- **Gautam Mahajan (Gautam9981)**: API Development & Design
